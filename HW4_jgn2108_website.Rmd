@@ -1,0 +1,68 @@
+---
+name: "JGN's Website"
+output_dir: "."
+author: "Jordan G. Nestor"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cerulean
+---
+
+# About Me
+I am a physician-scientist and a kidney genomics expert.
+
+## Education & Training
+COLLEGE OF THE HOLY CROSS, WORCESTER, MA            
+B.A. - Sociology, Women’s Studies
+(05/2003)
+
+ALBERT EINSTEIN COLLEGE OF MEDICINE, BRONX, NY     
+M.D. - Medicine
+(05/2012)
+
+WEILL CORNELL, NEW YORK, NY                               
+Residency - Internal Medicine
+(2012-2015)
+
+COLUMBIA UNIVERSITY, NEW YORK, NY 	                            
+Fellowship - Nephrology
+(2015-2017)
+
+COLUMBIA UNIVERSITY, NEW YORK, NY 	 	                           
+Fellowship - Precision Medicine
+(2017-2020)
+
+MAILMAN SCHOOL OF PUBLIC HEALTH, NEW YORK, NY 	               
+M.S. - Patient Oriented Research 
+(02/2024)
+
+## Academic & Hospital Appointments
+01/2021-Present: Columbia University’s College of Physicians & Surgeons, Assistant Professor>
+
+07/2020-Present: New York-Presbyterian Hospital/Columbia University, Attending Physician
+
+07/2020-12/2020: Columbia University’s College of Physicians & Surgeons, Instructor of Medicine
+
+07/2017-06/2020: New York-Presbyterian Hospital/Columbia University, Assistant Attending Physician
+
+## Contact Information
+https://github.com/jgn2108/jgn2108.github.io.git
+
+Email: <jgn2108@cumc.columbia.edu>
+
+## Publications
+Complete List of Published Work in NIH MyBibliography: 
+https://www.ncbi.nlm.nih.gov/myncbi/jordan.nestor.2/bibliography/public/
+
+
+
+
+
+
+
+
+
+
+
