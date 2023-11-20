@@ -1,0 +1,212 @@
+---
+title: 'HW4: Problem 2'
+author: "jgn2108"
+date: "`r Sys.Date()`"
+output: html_document
+---
+#Libraries
+```{r}
+library(tidyverse)
+library(httr)
+library(jsonlite)
+```
+
+#retrieve the data from the provided URL: DOHMH New York City Restaurant Inspection Results
+```{r}
+get_all_inspections <- function(url) {
+  
+  all_inspections <- vector("list", length = 0)
+  
+  loop_index <- 1
+  chunk_size <- 50000
+  DO_NEXT <- TRUE
+  
+  while (DO_NEXT) {
+    message("Getting data, page ", loop_index)
+    
+    all_inspections[[loop_index]] <- 
+      GET(url,
+          query = list(`$order` = "zipcode",
+                       `$limit` = chunk_size,
+                       `$offset` = as.integer((loop_index - 1) * chunk_size)
+          )
+      ) %>%
+      content("text") %>%
+      fromJSON() %>%
+      as_tibble()
+    
+    DO_NEXT <- dim(all_inspections[[loop_index]])[1] == chunk_size
+    loop_index <- loop_index + 1
+  }
+  
+  bind_rows(all_inspections)
+}
+
+url <- "https://data.cityofnewyork.us/resource/43nn-pn8j.json"
+
+nyc_inspections <- get_all_inspections(url)
+
+```
+
+```{r}
+# Display column names
+col_names <- names(nyc_inspections)
+col_names
+```
+
+#Remove rows with missing observations (nyc_inspections_filtered)
+```{r}
+# Remove rows with missing observations
+nyc_inspections_filtered <- na.omit(nyc_inspections) #from 209,222 observations filtered down to 91,260
+
+```
+
+#Now look at data for zipcode 10009
+```{r}
+library(dplyr)
+
+# Filter data for the specific zipcode (e.g., 10009)
+nyc_inspections_zipcode <- nyc_inspections %>%
+  filter(zipcode == 10009)
+
+```
+
+#remove 10009 data with missing observations
+```{r}
+library(tidyr)
+
+# Filter out rows with missing data
+nyc_inspections_zipcode_clean <- drop_na(nyc_inspections_zipcode) #from 2283 observations to 943 observations
+
+```
+
+#now combine building variable with street variable to get the address of the restaurants
+```{r}
+# Create a new variable "address" by combining "building" and "street"
+nyc_inspections_zipcode_clean <- nyc_inspections_zipcode_clean %>%
+  mutate(address = paste(building, street, sep = " "))
+
+# View the updated df
+head(nyc_inspections_zipcode_clean)
+
+```
+#convert tiblle into a normal df
+```{r}
+# Convert tibble to data frame
+nyc_inspections_zipcode_clean_df <- as.data.frame(nyc_inspections_zipcode_clean)
+
+# View the resulting data frame
+head(nyc_inspections_zipcode_clean_df)
+
+```
+
+#load libraries I will need for these fancy plots
+```{r}
+#install.packages("plotly")
+library(tidyverse)
+library(plotly)
+library(dplyr)
+```
+#scatter plot like the lecture
+```{r}
+# Create the scatter plot
+nyc_inspections_zipcode_clean_df %>%
+  plot_ly(
+    x = ~latitude, 
+    y = ~longitude, 
+    type = "scatter", 
+    mode = "markers",
+    color = ~grade,  # Assuming "grade" is a categorical variable
+    text = ~paste("Grade: ", grade),
+    alpha = 0.5
+  ) %>%
+  layout(
+    title = "NYC Restaurant Inspection Grades",
+    xaxis = list(title = "Latitude"),
+    yaxis = list(title = "Longitude")
+  )
+```
+
+#That plot is gross...lets try grade vs. street
+```{r}
+plot_ly(
+  data = nyc_inspections_zipcode_clean_df,
+  x = ~street,
+  y = ~grade,
+  type = "scatter",
+  mode = "markers",
+  text = ~paste("Grade: ", grade, "<br>Street: ", street),
+  marker = list(size = 10, color = ~grade)
+) %>%
+  layout(title = "Grade vs Street",
+         xaxis = list(title = "Street"),
+         yaxis = list(title = "Grade"))
+```
+
+#googled how to add color to grades
+```{r}
+plot_ly(
+  data = nyc_inspections_zipcode_clean_df,
+  x = ~street,
+  y = ~grade,
+  type = "scatter",
+  mode = "markers",
+  text = ~paste("Grade: ", grade, "<br>Street: ", street),
+  color = ~grade,
+  colors = c("A" = "green", "B" = "blue", "C" = "orange", "P" = "purple", "Z" = "red"),
+  marker = list(size = 10)
+) %>%
+  layout(title = "Grade vs Street",
+         xaxis = list(title = "Street"),
+         yaxis = list(title = "Grade"))
+
+```
+
+#list all restuarant names and addressed if they have an A
+```{r}
+library(dplyr)
+# Filter the data for grade A
+grade_A_data <- nyc_inspections_zipcode_clean_df %>%
+  filter(grade == "A")
+
+# Create a table of restaurant names (dba), their locations (address),
+# grade, and inspection date
+restaurant_table <- grade_A_data %>%
+  select(dba, address, grade, inspection_date)
+
+# Arrange the table alphabetically by restaurant names
+restaurant_table <- arrange(restaurant_table, dba)
+
+# Print the sorted table
+print(restaurant_table)
+
+```
+#Attempt a Plotly boxplot
+```{r}
+# mutate to reorder "street" based on the median grade
+nyc_inspections_zipcode_clean_df <- nyc_inspections_zipcode_clean_df %>%
+  mutate(street = fct_reorder(street, grade, .fun = median))
+
+# Create a Plotly boxplot for "grade" by "street"
+boxplot <- nyc_inspections_zipcode_clean_df %>%
+  plot_ly(y = ~grade, color = ~street, type = "box", colors = "viridis")
+
+# Show the plot
+boxplot
+```
+This boxplot was more informative than the scatterplot
+
+#bar chart of number of places in zipcode 10009 with restaurants in each category
+```{r}
+# Count the occurrences of each grade
+grade_counts <- nyc_inspections_zipcode_clean_df %>%
+  count(grade)
+
+# Create a Plotly barchart
+barchart <- grade_counts %>%
+  plot_ly(x = ~grade, y = ~n, type = "bar", marker = list(color = "skyblue"))
+
+# Show the barchart
+barchart
+```
+The bar chart is the most informative - showing me taht in my neighborhood, a small proportion of restaurants have inspection grades less than an A. Comforting.
